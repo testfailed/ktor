@@ -2160,6 +2160,10 @@ internal open class ByteBufferChannel(
         )
     }
 
+    /**
+     * Suspend until the channel has bytes to read or gets closed.
+     * Throws exception if the channel was closed with an error.
+     */
     override suspend fun awaitContent() {
         readSuspend(1)
     }
@@ -2272,6 +2276,7 @@ internal open class ByteBufferChannel(
 
     @Volatile
     private var writeSuspensionSize: Int = 0
+
     private val writeSuspension = { ucont: Continuation<Unit> ->
         val size = writeSuspensionSize
 
