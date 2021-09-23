@@ -5,6 +5,7 @@
 package io.ktor.client.engine.curl
 
 import io.ktor.client.engine.curl.internal.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
 import kotlin.native.concurrent.*
@@ -15,9 +16,7 @@ import kotlin.native.concurrent.*
 @ThreadLocal
 private lateinit var curlApi: CurlMultiApiHandler
 
-internal class CurlProcessor(
-    override val coroutineContext: CoroutineContext
-) : CoroutineScope {
+internal class CurlProcessor(coroutineContext: CoroutineContext) {
     @OptIn(ExperimentalCoroutinesApi::class)
     private val curlDispatcher: SingleThreadDispatcher = newSingleThreadContext("curl-dispatcher")
     private val curlScope = CoroutineScope(coroutineContext + curlDispatcher)
@@ -25,7 +24,7 @@ internal class CurlProcessor(
     init {
         curlScope.launch {
             curlApi = CurlMultiApiHandler()
-        }.consume { }
+        }
     }
 
     suspend fun executeRequest(request: CurlRequestData): CurlSuccess {
@@ -56,7 +55,7 @@ internal class CurlProcessor(
         curlDispatcher.close()
     }
 
-    private fun curlPerform() = curlScope.launch { curlApi.perform(100).freeze() }
+    private fun curlPerform() = curlScope.launch { curlApi.perform(100) }
 
     private fun cancelRequest(easyHandle: EasyHandle, cause: Throwable) {
         curlScope.launch {
